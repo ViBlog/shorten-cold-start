@@ -1,3 +1,5 @@
+Essay that will be published under [dubedout.eu](http://dubedout.eu)
+
 # Cold Starts
 ## What's that?
 In Android, there is three types of starts: First Starts, Cold Starts and Warm Starts.
@@ -17,7 +19,7 @@ To fasten development, we use a lot of libraries that are needed across the whol
 
 ## SplashScreen mistake
 Lot of blog posts have been written about this -> cyrilMottier post
-*** sumarize ***
+*** summarize ***
 
 As of many Android developers, I'm a partisan of the ***Show the content fast*** rule. And for me, It's like modifying this well-known quote from Uncle Bob's Clean Code book
 > "Every time you write a ~~comment~~ *SplashScreen*, you should grimace and feel the failure of your ability of ~~expression~~ *coding a snappy app*."
@@ -31,9 +33,13 @@ We will study an application built in the company I work for: [YP Dine](https://
 *** startup time and basic NimbleDroid information ***
 
 ## With what
-Usually I use [TraceView and DmTraceDump](http://developer.android.com/tools/debugging/debugging-tracing.html), their purpose is to find the bottlenecks in your code and help you fix it, but I keep them for a dedicated post. This time we will rely on a [NimbleDroid](https://nimbledroid.com/), they use the same tools but display the results in a very easy to understand way. What I like is that they tests performances in same conditions for each applications. So it's easy to compare your application with other ones like Facebook, WhatsApp and other big players.
+Usually I use [TraceView and DmTraceDump](http://developer.android.com/tools/debugging/debugging-tracing.html), their purpose is to find the bottlenecks in your code and help you fix it, but I keep them for a dedicated post. This time we will rely on [NimbleDroid](https://nimbledroid.com/), they use the same tools but display the results in a very easy to understand way. What I like is that they tests performances in same conditions for each applications. So it's easy to compare your application with other ones like Facebook, WhatsApp and other big players.
 
-
+## Tracing
+Watch out, before starting enhancing the startup time, you should check if it is worth your time, how long it should take and avoid [gold plating](https://en.wikipedia.org/wiki/Gold_plating_(software_engineering&#41;).
+Avoid Gold Platting
+***[ScreenShot Home NimbleDroid, General]***
+Our app is not that bad with 2400 ms to start. Just below on the Hung Methods, we can see that the DineApp.onCreate() is blocking the process by 2059 ms.  
 
 
 

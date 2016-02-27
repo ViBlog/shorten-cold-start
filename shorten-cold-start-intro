@@ -9,9 +9,40 @@ In Android, there is three types of starts: First Starts, Cold Starts and Warm S
 - Cold starts, in between first and warm, is frequently occurring and the user will notice the slow start time *(I wasn't able to retrieve data, even if I remember seeing one)*. When the application is not loaded by the system, it has to relaunch all his objects, services, assets and that can be slow.
 
 ## Why it's so slow
-In everyday work, we try to use the [best tools](https://github.com/codepath/android_guides/wiki/Must-Have-Libraries) to fasten the development and achieve the business requirements. Unfortunately, they are often lined up over features and don't take into account the benefits of a snappy application. Let's see what is taking this precious launch time.
+In everyday work, we try to use the [best tools](https://github.com/codepath/android_guides/wiki/Must-Have-Libraries) to fasten the development and achieve the business requirements. Unfortunately, they are often lined up over features and don't take into account the benefits of a snappy application.
 
-To fasten development, we use a lot of libraries that are needed across the whole application and so we instantiate them in the ```Application.onCreate()```. The problem comes when we start using a lot of them without any threading. The onCreate is one of the first methods to be called when the application launches and we should not put any synchronous code in it.
+To fasten development, we use a lot of libraries that are needed across the whole application. To do so, they are often instantiated in the ```Application.onCreate()```. The problem comes when we start using too much without any threading. The onCreate is one of the first methods to be called when the application launches and if have any blocking code, we will impact directly the launch time.
+
+## SplashScreen mistake
+Lot of blog posts have been written about this -> cyrilMottier post
+*** sumarize ***
+
+As of many Android developers, I'm a partisan of the ***Show the content fast*** rule. And for me, It's like modifying this well-known quote from Uncle Bob's Clean Code book
+> "Every time you write a ~~comment~~ *SplashScreen*, you should grimace and feel the failure of your ability of ~~expression~~ *coding a snappy app*."
+
+Today, instead of focusing on creating a nice startup with the windowBackground we will focus on tracking what is taking time at startup and reduce that time.
+
+# Real world study
+## What kind of App
+We will study an application built in the company I work for: [YP Dine](https://play.google.com/store/apps/details?id=com.ypg.dine).
+*** logo yp dine ***
+
+## With what
+Usually I use *TraceView and DmTraceDump*, but I keep it for a dedicated post. This time we will rely on a new player here : [NimbleDroid](https://nimbledroid.com/). What I like is that the performance tests are in the same conditions for each applications. It means that you can compare your application with other ones like Facebook, WhatsApp and other big players.
+
+
+
+
+
+
+
+
+
+
+
+It's slow because we
+
+
 
 It's rarely what I usually see on applications I jump onto.
 
@@ -32,11 +63,7 @@ A big part of them
 - User not able to use it fast
 - User loose interest in launching it
 
-- Creation of Splash Screens
-As of many Android developers, I'm a partisan of the ***Show the content fast*** rule. And for me, It's like modifying this well-known quote from Uncle Bob's Clean Code book
-> "Every time you write a ~~comment~~ *SplashScreen*, you should grimace and feel the failure of your ability of ~~expression~~ *coding a snappy app*."
 
-Today, instead of focusing on creating a nice startup with the windowBackground we will focus on tracking what is taking time at startup and reduce that time.
 
 #TraceView and DmTraceDump
 We can find some information about those tools in the [Android documentation](http://developer.android.com/tools/debugging/debugging-tracing.html). Their purpose is to find the bottlenecks in your code and help you fix it. We will not use them directly and use NimbleDroid

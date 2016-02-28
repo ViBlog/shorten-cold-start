@@ -11,7 +11,7 @@ In Android, there is three types of starts: First Starts, Cold Starts and Warm S
 - Cold starts, in between first and warm, is frequently occurring and the user will notice the slow start time *(I wasn't able to retrieve data, even if I remember seeing one)*. When the application is not loaded by the system, it has to relaunch all his objects, services, assets and that can be slow.
 
 ## Why it's so slow
-In everyday work, we try to use the [best tools](https://github.com/codepath/android_guides/wiki/Must-Have-Libraries) to fasten the development and achieve the business requirements. Unfortunately, they are often lined up over features and don't take into account the benefits of a snappy application.
+In everyday work, we try to use the [best tools] to fasten the development and achieve the business requirements. Unfortunately, they are often lined up over features and don't take into account the benefits of a snappy application.
 
 To fasten development, we use a lot of libraries that are needed across the whole application. To do so, they are often instantiated in the ```Application.onCreate()```. The problem comes when we start using too much without any threading. The onCreate is one of the first methods to be called when the application launches and if have any blocking code, we will impact directly the launch time.
 
@@ -28,53 +28,59 @@ Today, instead of focusing on creating a nice startup with the windowBackground 
 
 # Real world study
 ## What kind of App
-We will study an application built in the company I work for: [YP Dine](https://play.google.com/store/apps/details?id=com.ypg.dine).
-*** logo yp dine ***
-*** startup time and basic NimbleDroid information ***
+We will study an application built in the company I work for: [YP Dine].
+![Logo YP Dine][YPDine_logo]  
+
 
 ## With what
-Usually I use [TraceView and DmTraceDump](http://developer.android.com/tools/debugging/debugging-tracing.html), their purpose is to find the bottlenecks in your code and help you fix it, but I keep them for a dedicated post. This time we will rely on [NimbleDroid](https://nimbledroid.com/), they use the same tools but display the results in a very easy to understand way. What I like is that they tests performances in same conditions for each applications. So it's easy to compare your application with other ones like Facebook, WhatsApp and other big players.
+Usually I use [TraceView and DmTraceDump], their purpose is to find the bottlenecks in your code and help you fix it, but I keep them for a dedicated post. This time we will rely on [NimbleDroid], they use the same tools but display the results in a very easy to understand way. What I like is that they tests performances in same conditions for each applications. So it's easy to compare your application with other ones like Facebook, WhatsApp and other big players.
 
 ## Tracing
-Watch out, before starting enhancing the startup time, you should check if it is worth your time, how long it should take and avoid [gold plating](https://en.wikipedia.org/wiki/Gold_plating_(software_engineering&#41;).
-Avoid Gold Platting
-***[ScreenShot Home NimbleDroid, General]***
+Watch out, before starting enhancing the startup time, you should check if it is worth your time, how long it should take and avoid [gold plating].  
+
+![2.6s launch time][YPDine_general]  
+
 Our app is not that bad with 2400 ms to start. Just below on the Hung Methods, we can see that the DineApp.onCreate() is blocking the process by 2059 ms.  
 
+- clicking on it shows that Methods are taking most of the time
+  - UInit
+  - JodaTime
+  - third one I don't remember by head
+
+![onCreate 3 methods blocking startup][YPDine_onCreate]
+
+to gain lot of launching time easily, we need
+
+
+
+
+[comment]: <> (IMAGES)
+[YPDine_logo]: images/ypdine_logo.webp
+[YPDine_general]: images/dine_cold_startup.png
+[YPDine_onCreate]: images/dine_callstack_onCreate.png
+
+[comment]: <> (LINKS)
+[best tools]:https://github.com/codepath/android_guides/wiki/Must-Have-Libraries
+[YP Dine]:https://play.google.com/store/apps/details?id=com.ypg.dine
+[NimbleDroid]:https://nimbledroid.com/
+[TraceView and DmTraceDump]:http://developer.android.com/tools/debugging/debugging-tracing.html
+[gold plating]:https://en.wikipedia.org/wiki/Gold_plating_(software_engineering&#41;
 
 
 
 
 
-
-
-
-
-
-
-
+_________________________________________________
+part 2
 
 
 *** Library + no threads = errors ***
 
-On one hand,
-Applications use a lot of libraries. If you are very picky you can deal with less than ten. If you have a lot of business requirements, it's where hell starts. On the
-
-A big part of them
-- Applications needs a lot of libraries
-- Most of libraries needs creation at Startup (list some)
-- Most of those are create in the App's onCreate
-- initializations in the onCreate takes memory and time.
-- Slow ([cold start](fill url)),
 - User not able to use it fast
 - User loose interest in launching it
 
 
 
-#TraceView and DmTraceDump
-We can find some information about those tools in the [Android documentation](http://developer.android.com/tools/debugging/debugging-tracing.html). Their purpose is to find the bottlenecks in your code and help you fix it. We will not use them directly and use NimbleDroid
-
-ypg.dine
 
 ***[ScreenShot dine Nimbledroid's onCreate]***
 in the onCreate, we can see 3 methods taking most of the time

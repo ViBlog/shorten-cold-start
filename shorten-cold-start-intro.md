@@ -4,27 +4,29 @@ Essay that will be published under [dubedout.eu](http://dubedout.eu)
 ## What's that?
 In Android, there is three types of starts: First Starts, Cold Starts and Warm Starts.
 
-- First starts, the slowest, is just after it have been installed or updated. The app needs to set up database, load configuration, load the first batch of data. It's only occurring once so we will not talk about it.
+- First starts, the slowest, is just after the application have been installed or updated. The app needs to (re)set up database, load configuration, load the first batch of data. It's only occurring once so it's not the more important.
 
-- Warm starts, the fastest, is when you put your app in background and went back to it. The app is still launched; all services are already up running. It's usually very fast.
+- Warm starts, the fastest, is when you put your app in background and go back to it. The app is still in memory, everything up and running, it's usually very fast.
 
-- Cold starts, in between first and warm, is frequently occurring and the user will notice the slow start time *(I wasn't able to retrieve data, even if I remember seeing one)*. When the application is not loaded by the system, it has to relaunch all his objects, services, assets and that can be slow.
+- Cold starts, to finish, is between first and warm. Application have been released from the memory, and will have to initialize back every services, that it needs to run. It's frequently occurring and if takes a lot of time to startup, the user will notice it *(I wasn't able to retrieve data, even if I remember seeing one)*.
 
 ## Why it's so slow
-In everyday work, we try to use the [best tools] to fasten the development and achieve the business requirements. Unfortunately, they are often lined up over features and don't take into account the benefits of a snappy application.
+In everyday work, we use [libraries] to fasten development and achieve the business requirements. Those are often lined up over features and it's much harder to justify the benefits of a snappy application.
 
-To fasten development, we use a lot of libraries that are needed across the whole application. To do so, they are often instantiated in the ```Application.onCreate()```. The problem comes when we start using too much without any threading. The onCreate is one of the first methods to be called when the application launches and if have any blocking code, we will impact directly the launch time.
+A lot of Libraries are needed across the whole application. To do so, they are often instantiated in the ```Application.onCreate()```. When we use too much of them without any threading or lazy loading, we end up with an ```onCreate``` blocked by object initialization. As it's one of the methods called each time the application is relaunched, we slow down every launch.
 
 > "I have no time to fix this and it's not so slow. [10 libraries later]... Mmmm I guess we have a problem." -*Derp*
 
-## SplashScreen mistake
-Lot of blog posts have been written about this -> cyrilMottier post
-*** summarize ***
+That's when the management comes with a great idea.
 
-As of many Android developers, I'm a partisan of the ***Show the content fast*** rule. And for me, It's like modifying this well-known quote from Uncle Bob's Clean Code book
+## Splash Screens
+As many Android developers, I'm a supporter of showing the data the user is looking for the sooner, the better. I like joking modifying this well-known quote from Uncle Bob's Clean Code book
+
 > "Every time you write a ~~comment~~ *SplashScreen*, you should grimace and feel the failure of your ability of ~~expression~~ *coding a snappy app*."
 
-Today, instead of focusing on creating a nice startup with the windowBackground we will focus on tracking what is taking time at startup and reduce that time.
+I will not repeat the well-known blog post of Cyril Mottier ([splashScreen are evil]) where he explains the reason why you should avoid it.
+
+Today, instead of focusing on creating a nice startup screeb with the windowBackground we will focus on tracking what is taking time at startup and reduce it.
 
 # Hands on
 ## YP Dine
@@ -68,7 +70,8 @@ Always keep in mind to ***fix performance issues*** on the most blocking issues,
 [YPDine_onCreate]: images/dine_callstack_onCreate.png
 
 [comment]: <> (LINKS)
-[best tools]:https://github.com/codepath/android_guides/wiki/Must-Have-Libraries
+[splashScreen are evil]:http://www.cyrilmottier.com/2012/05/03/splash-screens-are-evil-dont-use-them/
+[libraries]:https://github.com/codepath/android_guides/wiki/Must-Have-Libraries
 [YP Dine]:https://play.google.com/store/apps/details?id=com.ypg.dine
 [NimbleDroid]:https://nimbledroid.com/
 [TraceView and DmTraceDump]:http://developer.android.com/tools/debugging/debugging-tracing.html

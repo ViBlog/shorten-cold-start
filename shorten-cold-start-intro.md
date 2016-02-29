@@ -31,15 +31,15 @@ Yp Dine is not a bad player here with 2400 ms to start. But we can see below tha
 
 ![2.6s launch time][YPDine_general]  
 
+![onCreate 3 methods blocking startup][YPDine_onCreate]
+
 On the call stack, we can see that three methods are taking most of the starting time:
 - UIUtils.initReservation (JodaTime), 981ms
 - UserPreferences, 553ms
 - YpDine.Utils..., 364ms
 If we can fix this, it will be a good improvement.
 
-![onCreate 3 methods blocking startup][YPDine_onCreate]
-
-If those methods are blocking the UI, it probably means they are directly in the main thread,and if we are able to instantiate them on a thread it would have been a quick win.
+If those methods are blocking the UI, it probably means they are directly in the main thread,and if we are able to instantiate them asynchronously it will be a quick win.
 
 Always keep in mind to work on the most important issues first, frames dropping on a ```ListView``` can be more frustrating that the start time. I really like this post from coding horror on [Gold Plating], you should definitely take a look if you don't know this.
 

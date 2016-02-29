@@ -8,14 +8,14 @@ In Android, there is three types of starts: First Starts, Cold Starts and Warm S
 
 - Warm starts, the fastest, is when you put your app in background and go back to it. The app is still in memory, everything up and running, it's usually very fast.
 
-- Cold starts, to finish, is between first and warm. Application have been released from the memory, and will have to initialize back every services, that it needs to run. It's frequently occurring and if takes a lot of time to startup, the user will notice it *(I wasn't able to retrieve data, even if I remember seeing one)*.
+- Cold starts, to finish, is between first and warm. Application have been released from the memory, and will have to initialize back every services, that it needs to run. It's frequently occurring and if takes a lot of time to startup, the user will notice it, and will not like it as you can see in this 2012's [report].
 
 ## Why it's so slow
-In everyday work, we use [libraries] to fasten development and achieve the business requirements. Those are often lined up over features and it's much harder to justify the benefits of a snappy application.
+In everyday work, we use [libraries] to develop and achieve business requirements faster. Those are often focused on adding features instead of keeping an application fast and responsive because the latests is not adding business value. or not directly.
 
-A lot of Libraries are needed across the whole application. To do so, they are often instantiated in the ```Application.onCreate()```. When we use too much of them without any threading or lazy loading, we end up with an ```onCreate``` blocked by object initialization. As it's one of the methods called each time the application is relaunched, we slow down every launch.
+A lot of Libraries are needed across the whole application and are often initialized in the ```Application.onCreate()```. When we initialize too much without any threading or lazy loading, we end up with an ```onCreate``` that takes more time to pass through. As it's one of the methods called each time the application is launched, and that an ```Activity``` can't be started until it's completed, we slow down every launch.
 
-> "I have no time to fix this and it's not so slow. [10 libraries later]... Mmmm I guess we have a problem." -*Derp*
+> "Oops!... I did it again" -*Britney Spears*
 
 That's when the management comes with a great idea.
 
@@ -71,6 +71,7 @@ Always keep in mind to ***fix performance issues*** on the most blocking issues,
 
 [comment]: <> (LINKS)
 [splashScreen are evil]:http://www.cyrilmottier.com/2012/05/03/splash-screens-are-evil-dont-use-them/
+[report]:https://info.dynatrace.com/rs/compuware/images/Mobile_App_Survey_Report.pdf
 [libraries]:https://github.com/codepath/android_guides/wiki/Must-Have-Libraries
 [YP Dine]:https://play.google.com/store/apps/details?id=com.ypg.dine
 [NimbleDroid]:https://nimbledroid.com/

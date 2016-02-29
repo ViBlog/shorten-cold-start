@@ -17,6 +17,7 @@ A lot of Libraries are needed across the whole application and are often initial
 
 > "Oops!... I did it again" -*Britney Spears*
 
+*** quick speak about white screen, remove splashScreen tirade***
 That's when the management comes with a great idea.
 
 ## Splash Screens

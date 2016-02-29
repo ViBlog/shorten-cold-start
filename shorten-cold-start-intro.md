@@ -17,17 +17,7 @@ A lot of Libraries are needed across the whole application and are often initial
 
 > "Oops!... I did it again" -*Britney Spears*
 
-*** quick speak about white screen, remove splashScreen tirade***
-That's when the management comes with a great idea.
-
-## Splash Screens
-As many Android developers, I'm a supporter of showing the data the user is looking for the sooner, the better. I like joking modifying this well-known quote from Uncle Bob's Clean Code book
-
-> "Every time you write a ~~comment~~ *SplashScreen*, you should grimace and feel the failure of your ability of ~~expression~~ *coding a snappy app*."
-
-I will not repeat the well-known blog post of Cyril Mottier ([splashScreen are evil]) where he explains the reason why you should avoid it.
-
-Today, instead of focusing on creating a nice startup screeb with the windowBackground we will focus on tracking what is taking time at startup and reduce it.
+If we slow down the launch, we will see the [Zygote] longer and it will break immersion. The basic white launch screen is not pretty by default... Instead of focusing on creating a nice app startup screen with the windowBackground we will focus on tracking what is taking time and reduce it.
 
 # Hands on
 ## YP Dine
@@ -72,6 +62,7 @@ Always keep in mind to ***fix performance issues*** on the most blocking issues,
 
 [comment]: <> (LINKS)
 [splashScreen are evil]:http://www.cyrilmottier.com/2012/05/03/splash-screens-are-evil-dont-use-them/
+[Zygote]:http://cyrilmottier.com/2013/01/23/android-app-launching-made-gorgeous/
 [report]:https://info.dynatrace.com/rs/compuware/images/Mobile_App_Survey_Report.pdf
 [libraries]:https://github.com/codepath/android_guides/wiki/Must-Have-Libraries
 [YP Dine]:https://play.google.com/store/apps/details?id=com.ypg.dine

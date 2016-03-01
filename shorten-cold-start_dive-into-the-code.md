@@ -1,6 +1,27 @@
-
-
-
+- Open onCreate
+  - find the methods
+  - verify their dependencies accross the application
+  - any Unit Tests?
+  - Service registry concept
+- refactor
+  - multidex? already up (progard?)
+  - quick test with 3 threads
+  - Results on NimbleDroid
+  - problems that threads can cause
+    - instance not initialized when needed -> NPE
+- Lazy Loading
+  - Concept
+  - Singleton vs Single Instance
+  - Dagger 2
+    - pros
+    - why not using it
+  - Lazy Loading class
+    - add
+    - addLazy
+    - getInstance
+  - replace ServiceRegistry
+    - Replace Structurally
+    - fix UnitTests
 
 _________________________________________________
 part 2 : Dive into the code

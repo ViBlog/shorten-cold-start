@@ -25,7 +25,7 @@ Usually, I use [TraceView and DmTraceDump] to find the bottlenecks in the code a
 YP Dine isn't obfuscated so we can effortlessly check which part of the code is blocking. If yours is obfuscated, it's still possible to add the ProGuard Mapping to reveal problematic methods.
 
 ## Tracing
-Yp Dine is not a bad player here with 2400 ms to start. But we can see below that the DineApp.onCreate() is blocking the process by 2059 ms. Roughly 80% of his start time is blocked here, clicking on this line will open a new view with more details in it.
+Yp Dine is not a bad player here with 2400 ms to start. But we can see below that the DineApp.onCreate() is blocking the process for 2059 ms. Roughly 80% of his start time is blocked here, clicking on this line will open a new view with more details in it.
 
 ![2.6s launch time][YPDine_general]  
 
@@ -45,6 +45,7 @@ We end up the first part here, on the second part, we will go through the code o
 
 *** PART 2 : Dive into the code***
 
+PS: for now I haven't any comments on my website, please send any comments/issues here https://github.com/ViBlog/shorten-cold-start
 
 [comment]: <> (IMAGES)
 [YPDine_logo]: images/ypdine_logo.webp

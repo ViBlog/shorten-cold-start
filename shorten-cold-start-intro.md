@@ -4,27 +4,25 @@ Essay that will be published under [dubedout.eu](http://dubedout.eu)
 ## What's that?
 In Android, there is three types of starts: First Starts, Cold Starts and Warm Starts.
 
-- First starts, the slowest, is just after the application have been installed or updated. The app needs to (re)set up database, load configuration, load the first batch of data. It's only occurring once so it's not the more important.
+- First starts, the slowest, is just after the application have been installed or updated. The app needs to (re)set up a database, load configuration, load the first batch of data. It's only occurring once, so it's not the most important.
 
-- Warm starts, the fastest, is when you put your app in background and go back to it. The app is still in memory, everything up and running, it's usually very fast.
+- Warm starts, the fastest, is when you put your app in the background and go back to it. The app is still in memory, everything up and running, it's usually very fast.
 
-- Cold starts, to finish, is between first and warm. Application have been released from the memory, and will have to initialize back every services, that it needs to run. It's frequently occurring and if takes a lot of time to startup, the user will notice it, and will not like it as you can see in this 2012's [report].
+- Cold starts, to finish, is between first and warm. The application has been released from the memory, and will have to initialize back every service, which it needs to run. It's frequently occurring, and it takes time to startup, the user will notice it, and will not like it as you can see in this 2012's [report].
 
 ## Why it's so slow
-In everyday work, we use [libraries] to develop and achieve business requirements faster. Those are often focused on adding features instead of keeping an application fast and responsive because the latests is not adding business value. or not directly.
+In everyday work, we use [libraries] to develop and achieve business requirements faster. Those focus on adding features instead of keeping an application quick and responsive because the latest is not adding business value, or not directly quantifiable.
 
-A lot of Libraries are needed across the whole application and are often initialized in the ```Application.onCreate()```. When we initialize too much without any threading or lazy loading, we end up with an ```onCreate``` that takes more time to pass through. As it's one of the methods called each time the application is launched, and that an ```Activity``` can't be started until it's completed, we slow down every launch.
+A big part of used libraries are needed by the whole application and are often initialized in the ```Application.onCreate()```. When we initialize without any threading or lazy loading, we end up with a ```onCreate``` that takes more time to be processed. As it's one of the methods called each time the application start, and that an ```Activity``` can't be started until it's complete, we slow down every launch.
 
-> "Oops!... I did it again" -*Britney Spears*
-
-If we slow down the launch, we will see the [Zygote] longer and it will break immersion. The basic white launch screen is not pretty by default... Instead of focusing on creating a nice app startup screen with the windowBackground we will focus on tracking what is taking time and reduce it.
+When the application is slow to start, it displays the [Zygote] longer, and it will break immersion. This root white start screen is not pretty by default... But instead of focusing on creating a beautiful app startup screen with the windowBackground we will concentrate on tracking what is taking time and reduce it.
 
 # Hands on YP Dine
-[YP Dine] is a recent application on the play store built by another team in Yellow Pages Canada. His goal is to make you can discover your next favourite restaurant, browse through handmade lists from local food experts or book a table from this app.
+[YP Dine] is a recent application of the play store built by another team in Yellow Pages Canada. His goal is to make you can discover your next favorite restaurant, browse through handmade lists from local food experts or book a table from this app.
 
 ## What tools
-Usually I use [TraceView and DmTraceDump] to find the bottlenecks in the code and fix it. I will keep them for a dedicated post and will play with [NimbleDroid]. They use the same tools but display the results in a very easy to understand way. All performance tests are realized in same conditions letting you compare with other applications, and you can check the cold start of your app by versions. Super nice to keep track of this starting time.
-YP Dine is not obfuscated so we can easily check which part of the code is blocking. If yours is obfuscated, it's still possible to add the ProGuard Mapping to reveal the problematic methods.
+Usually, I use [TraceView and DmTraceDump] to find the bottlenecks in the code and fix it. I will keep them for a dedicated post and will play with [NimbleDroid]. They use the same tools but display the results in a very easy to understand way. All performance tests are realized in same conditions letting you compare with other applications, and you can check the cold start of your app by versions. Super nice to keep track of this starting time.
+YP Dine isn't obfuscated so we can effortlessly check which part of the code is blocking. If yours is obfuscated, it's still possible to add the ProGuard Mapping to reveal problematic methods.
 
 ## Tracing
 Yp Dine is not a bad player here with 2400 ms to start. But we can see below that the DineApp.onCreate() is blocking the process by 2059 ms. Roughly 80% of his start time is blocked here, clicking on this line will open a new view with more details in it.
@@ -39,9 +37,11 @@ On the call stack, we can see that three methods are taking most of the starting
 - YpDine.Utils..., 364ms
 If we can fix this, it will be a good improvement.
 
-If those methods are blocking the UI, it probably means they are directly in the main thread,and if we are able to instantiate them asynchronously it will be a quick win.
+If those methods are blocking the UI, it probably means they are directly in the main thread, and if we can instantiate them asynchronously it will be a quick win.
 
-Always keep in mind to work on the most important issues first, frames dropping on a ```ListView``` can be more frustrating that the start time. I really like this post from coding horror on [Gold Plating], you should definitely take a look if you don't know this.
+Always keep in mind to work on the most important issues first, frames dropping on a ```ListView``` can be more frustrating that the start time. I like this post from coding horror on [Gold Plating], you should take a look if you don't know this.
+
+We end up the first part here, on the second part, we will go through the code of the ```Application.onCreate()```, check what is going on, probably refactor, test with basic threading, replace the ```ServiceRegistry``` by a fast Lazy Loading class.
 
 *** PART 2 : Dive into the code***
 
@@ -60,48 +60,3 @@ Always keep in mind to work on the most important issues first, frames dropping 
 [NimbleDroid]:https://nimbledroid.com/
 [TraceView and DmTraceDump]:http://developer.android.com/tools/debugging/debugging-tracing.html
 [gold plating]:http://blog.codinghorror.com/gold-plating/;
-
-
-
-
-
-_________________________________________________
-part 2 : Dive into the code
-
-## Dive into the code
-Always keep in mind to ***fix performance issues*** on the most blocking issues, don't do this for the sake of doing it. [Gold plating], time that could have been on more higher priority part of code.
-
-
-
-*** Library + no threads = errors ***
-
-- User not able to use it fast
-- User loose interest in launching it
-
-
-
-
-***[ScreenShot dine Nimbledroid's onCreate]***
-in the onCreate, we can see 3 methods taking most of the time
-UserPreferences
-JodaTime
-other one
-
-Checking in the code
-***Screenshot of onCreate***
-Separation and cleanup of onCreate
-
-
-
-- Singleton pattern is not the solution, welcome single instance
--> [nice explanation](http://programmers.stackexchange.com/a/40610/212413)
-
-
-
-
-**What's Lazy Loading**
-
-From Wikipedia, Lazy
-
-
-[New York Times, Improving Startup Time](http://open.blogs.nytimes.com/2016/02/11/improving-startup-time-in-the-nytimes-android-app/?_r=0)

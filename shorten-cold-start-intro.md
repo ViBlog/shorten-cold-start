@@ -1,4 +1,4 @@
-Essay that will be published under [dubedout.eu](http://dubedout.eu)
+Essay that will be published under [shorten cold start on dubedout.eu](http://dubedout.eu/shorten-cold-start-intro/)
 
 # Cold Starts
 ## What's that?
@@ -43,7 +43,7 @@ Always keep in mind to work on the most important issues first, frames dropping 
 
 We end up the first part here, on the second part, we will go through the code of the ```Application.onCreate()```, check what is going on, probably refactor, test with basic threading, replace the ```ServiceRegistry``` by a fast Lazy Loading class.
 
-*** PART 2: Dive into the code***
+***Part 2: Dive into the code***
 
 PS: for now I haven't any comments on my website, please send any comments/issues here https://github.com/ViBlog/shorten-cold-start
 

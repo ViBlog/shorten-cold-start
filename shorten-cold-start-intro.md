@@ -45,6 +45,10 @@ We end up the first part here, on the second part, we will go through the code o
 
 ***Part 2: Dive into the code***
 
+Credits:
+[Snow Flake photo](https://www.flickr.com/photos/chaoticmind75/8313222713) comes from [Alexey Kljatov](https://www.flickr.com/photos/chaoticmind75/), all rights reserved to the creator.
+
+
 PS: for now I haven't any comments on my website, please send any comments/issues here https://github.com/ViBlog/shorten-cold-start
 
 [comment]: <> (IMAGES)

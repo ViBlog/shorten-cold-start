@@ -26,15 +26,30 @@
 _________________________________________________
 part 2 : Dive into the code
 
-## Dive into the code
-Always keep in mind to ***fix performance issues*** on the most blocking issues, don't do this for the sake of doing it. [Gold plating], time that could have been on more higher priority part of code.
+# Dive into the code
+## Application onCreate
+As we have seen in the previous post, those are the three methods that are blocking the startup:
+- AnalCommander // This is analytics ;)
+- UserPreferences
+- initReservation
 
+So, everything is on the onCreate without any threading. I have removed non relevant code for this post.
 
+```java
+@Override public void onCreate() {
+  DineApp.appContext = getApplicationContext();
+  super.onCreate();
+  [...]
+  final Map<Class, Object> registry = new HashMap<>();
+  registry.put(AnalCommander.class, new AnalCommander(appContext)); // this one is blocking
+  ServiceRegistry.create(registry);
 
-*** Library + no threads = errors ***
+  UserPreferences.init(this); // this one too
+  [...]
+  UIUtils.initReservation(this); // and finally this one
+}```
 
-- User not able to use it fast
-- User loose interest in launching it
+AnalCommander is an analytic tools that helps concentrate all analytics in one point. It's used in all the application and is instantiated into a ServiceRegistry. The service registry is a Class/Instance map whose goal is to keep in memory and provide instance everywhere in the app.
 
 
 

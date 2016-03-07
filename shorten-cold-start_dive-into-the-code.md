@@ -49,7 +49,12 @@ So, everything is on the onCreate without any threading. I have removed non rele
   UIUtils.initReservation(this); // and finally this one
 }```
 
-AnalCommander is an analytic tools that helps concentrate all analytics in one point. It's used in all the application and is instantiated into a ServiceRegistry. The service registry is a Class/Instance map whose goal is to keep in memory and provide instance everywhere in the app.
+`AnalCommander` is an analytic tools that helps concentrate all analytics in one point. It's used in all the application and is instantiated into a ServiceRegistry. The service registry is a Class/Instance map whose goal is to keep in memory and provide object instances everywhere in the app.
+
+`UserPreferences`
+
+`UIUtils.initReservation`
+
 
 
 

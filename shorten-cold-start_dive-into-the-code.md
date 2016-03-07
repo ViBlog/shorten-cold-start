@@ -24,7 +24,8 @@
     - fix UnitTests
 
 _________________________________________________
-part 2 : Dive into the code
+part 2 : Dive into the code  
+*** Add disclaimer, not working in this project and only focusing in improving it's performance on personal side project***
 
 # Dive into the code
 ## Application onCreate
@@ -33,7 +34,6 @@ As we have seen in the previous post, those are the three methods that are block
 - UserPreferences
 - initReservation
 
-So, everything is on the onCreate without any threading. I have removed non relevant code for this post.
 
 ```java
 @Override public void onCreate() {
@@ -49,9 +49,16 @@ So, everything is on the onCreate without any threading. I have removed non rele
   UIUtils.initReservation(this); // and finally this one
 }```
 
-`AnalCommander` is an analytic tools that helps concentrate all analytics in one point. It's used in all the application and is instantiated into a ServiceRegistry. The service registry is a Class/Instance map whose goal is to keep in memory and provide object instances everywhere in the app.
+So, everything is on the onCreate without any threading. I have removed non relevant code. Let's study the different blockers one by one.
 
-`UserPreferences`
+### Analytic Commander
+It's an analytic tool that helps merging all libraries of this purpose in a single access point. As all analytic tools, it's used everywhere in the application and to avoid recreating everytime, is created in the initialization of the application and stored in the ServiceRegistry (a Class/Instance map singleton). 
+
+[![Analytic Commander][callstack_oncreate_analcommander]][callstack_oncreate_link]
+
+As you can see here,
+
+`UserPreferences.init(this)` loads all user data from json files stored in SharedPreferences and keep them in memory during the whole application lifecycle. It's using
 
 `UIUtils.initReservation`
 
@@ -83,3 +90,9 @@ From Wikipedia, Lazy
 
 
 [New York Times, Improving Startup Time](http://open.blogs.nytimes.com/2016/02/11/improving-startup-time-in-the-nytimes-android-app/?_r=0)
+
+[comment]: <> (IMAGES)
+[callstack_oncreate_analcommander]: images/callstack_onCreate_analcommander.png
+
+[comment]: <> (LINKS)
+[callstack_oncreate_link]: https://nimbledroid.com/play/com.ypg.dine?p=323DVxanEq1ssS#com.ypg.dine.DineApp.onCreate

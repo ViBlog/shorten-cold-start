@@ -69,9 +69,31 @@ String jsonFavPlaces = sp.getString(KEY_PREFS_FAVORITE_PLACES, "[]");
 favPlaces = gson.fromJson(jsonFavPlaces, new TypeToken<HashMap<String, DineMerchantPreference>>() {
     }.getType());
 ```
-During initialization, it relies heavily on gson reflection causing multiple heavy {action/time hog/processing/script} that blocks the main thread. The New York Times have written a really good post on [Improving their Startup Time][newyorktimes_improvingstartuptime] where they encounter the same problem. They solve it by using [gson with custom type adapters][gson_custom_types]. and the cost of reflection of this library. For us, most of the objects are not used in the firsts seconds of startup so we will probably
+During initialization, it relies heavily on gson reflection causing multiple heavy {action/time hog/processing/script} that blocks the main thread. The New York Times have written a really good post on [Improving their Startup Time][newyorktimes_improvingstartuptime] where they encounter the same problem. They solve it by using [gson with custom type adapters][gson_custom_types]. On our side, most of our objects are not used in the firsts seconds of startup so we will be fine just creating them in a background thread.
 
-`UIUtils.initReservation`
+### UIUtils.initReservation
+This method creates default items for Search Activity and can easily be launched later in the process.
+
+
+![UIUtils initReservation][callstack_oncreate_uiutils_joda]
+
+```java
+@NonNull
+private static DateTime getSelectedDateTime(int days) {
+    return DateTime.now().plusDays(days);
+}
+```
+On another hand, we can clearly see here that JodaTime
+
+// TODO : Another post?
+- jodatime time hog method,
+- check what can be done to avoid this,
+- JSR 310 android backport https://github.com/JakeWharton/ThreeTenABP
+- Check what kind of library can replace this
+
+
+
+
 
 
 
@@ -105,6 +127,7 @@ From Wikipedia, Lazy
 [comment]: <> (IMAGES)
 [callstack_oncreate_analcommander]: images/callstack_onCreate_analcommander.png
 [callstack_oncreate_userpreference]: images/callstack_onCreate_userPreferences.png
+[callstack_oncreate_uiutils_joda]: images/callstack_onCreate_UIUtils_initReservation.png
 
 [comment]: <> (LINKS)
 [callstack_oncreate_link]: https://nimbledroid.com/play/com.ypg.dine?p=323DVxanEq1ssS#com.ypg.dine.DineApp.onCreate

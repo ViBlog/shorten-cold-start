@@ -99,27 +99,15 @@ On another hand, we can clearly see here that JodaTime
 
 
 
-***[ScreenShot dine Nimbledroid's onCreate]***
-in the onCreate, we can see 3 methods taking most of the time
-UserPreferences
-JodaTime
-other one
 
-Checking in the code
-***Screenshot of onCreate***
-Separation and cleanup of onCreate
+
+
 
 
 
 - Singleton pattern is not the solution, welcome single instance
 -> [nice explanation](http://programmers.stackexchange.com/a/40610/212413)
 
-
-
-
-**What's Lazy Loading**
-
-From Wikipedia, Lazy
 
 
 

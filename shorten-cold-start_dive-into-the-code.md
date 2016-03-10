@@ -36,8 +36,7 @@ _________________________________________________
 part 2 : Dive into the code
 *** Add disclaimer, not working in this project and only focusing in improving it's performance on personal side project ***
 
-# Intro
-What we will see here
+Intro : What we will see here
 
 # Dive into the code
 ## Application onCreate
@@ -105,7 +104,7 @@ To finish, UIUtils is not needed right after the launch screen but impact the UI
 
 
 
-
+What we will see in next one + link
 
 
 

@@ -1,3 +1,12 @@
+Dive into the code, Real Plan  
+- Application onCreate
+  - Analytic Commander
+  - UserPreferences
+  - UIUtils.initReservatoni
+  - Bilan
+- 
+
+
 - Open onCreate
   - find the methods
   - verify their dependencies accross the application
@@ -26,6 +35,9 @@
 _________________________________________________
 part 2 : Dive into the code
 *** Add disclaimer, not working in this project and only focusing in improving it's performance on personal side project ***
+
+# Intro
+What we will see here
 
 # Dive into the code
 ## Application onCreate
@@ -72,8 +84,7 @@ favPlaces = gson.fromJson(jsonFavPlaces, new TypeToken<HashMap<String, DineMerch
 During initialization, it relies heavily on gson reflection causing multiple heavy {action/time hog/processing/script} that blocks the main thread. The New York Times have written a really good post on [Improving their Startup Time][newyorktimes_improvingstartuptime] where they encounter the same problem. They solve it by using [gson with custom type adapters][gson_custom_types]. On our side, most of our objects are not used in the firsts seconds of startup so we will be fine just creating them in a background thread.
 
 ### UIUtils.initReservation
-This method creates default items for Search Activity and can easily be launched later in the process.
-
+This method creates default items as people number, hour of reservation etc... It's only used in a second activity: Search and so we can delay the creation.
 
 ![UIUtils initReservation][callstack_oncreate_uiutils_joda]
 
@@ -83,13 +94,14 @@ private static DateTime getSelectedDateTime(int days) {
     return DateTime.now().plusDays(days);
 }
 ```
-On another hand, we can clearly see here that JodaTime
 
-// TODO : Another post?
-- jodatime time hog method,
-- check what can be done to avoid this,
-- JSR 310 android backport https://github.com/JakeWharton/ThreeTenABP
-- Check what kind of library can replace this
+But let's take a look on this line, ```DateTime.now().plusDays(days)```. is blocking the UIThread for around 1 second. We always should do most of the work on a background thread to avoid this behaviour.
+
+### Sum Up
+So we have Analytic Commander that takes time to initialize, used everywhere in the app but is just an api call and do not interact with the UI. We can launch it in a thread as a fire and forget mode.
+Them we have UserPrefences that are needed not long after the launch screen, that impacts UI. This one should be initialized first and we should have a way to access this data the sonner without blocking the UI.
+To finish, UIUtils is not needed right after the launch screen but impact the UI. This one can be initialized in a low priority thread.
+
 
 
 

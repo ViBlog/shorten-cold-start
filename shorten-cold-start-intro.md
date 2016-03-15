@@ -18,7 +18,7 @@ A big part of used libraries are needed by the whole application and are often i
 When the application is slow to start, it displays the [Zygote] longer, and it will break immersion. This root white start screen is not pretty by default... But instead of focusing on creating a beautiful app startup screen with the windowBackground we will concentrate on tracking what is taking time and reduce it.
 
 # Hands on YP Dine
-[YP Dine] is a recent application of the play store built by another team in Yellow Pages Canada. His goal is to make you can discover your next favorite restaurant, browse through handmade lists from local food experts or book a table from this app.
+[YP Dine] is a recent application of the play store built by another team in Yellow Pages Canada. His goal is to make you can discover your next favorite restaurant, browse through handmade lists from local food experts or book a table from this app. I will dig into the initialization to check if we can have quick wins.
 
 ## What tools
 Usually, I use [TraceView and DmTraceDump] to find the bottlenecks in the code and fix it. I will keep them for a dedicated post and will play with [NimbleDroid]. They use the same tools but display the results in a very easy to understand way. All performance tests are realized in same conditions letting you compare with other applications, and you can check the cold start of your app by versions. Super nice to keep track of this starting time.

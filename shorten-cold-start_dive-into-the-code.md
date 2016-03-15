@@ -34,9 +34,7 @@ Dive into the code, Real Plan
 
 _________________________________________________
 part 2 : Dive into the code
-*** Add disclaimer, not working in this project and only focusing in improving it's performance on personal side project ***
-
-Intro : What we will see here
+*** paste this data at the end of the previous post ***
 
 # Dive into the code
 ## Application onCreate
@@ -97,8 +95,8 @@ private static DateTime getSelectedDateTime(int days) {
 But let's take a look on this line, ```DateTime.now().plusDays(days)```. is blocking the UIThread for around 1 second. We always should do most of the work on a background thread to avoid this behaviour.
 
 ### Sum Up
-So we have Analytic Commander that takes time to initialize, used everywhere in the app but is just an api call and do not interact with the UI. We can launch it in a thread as a fire and forget mode.
-Them we have UserPrefences that are needed not long after the launch screen, that impacts UI. This one should be initialized first and we should have a way to access this data the sonner without blocking the UI.
+So we have Analytic Commander that takes time to initialize, used everywhere in the app but is just an api call and do not interact with the UI. We can launch it in a thread as a fire and forget mode.  
+Them we have UserPrefences that are needed not long after the launch screen, that impacts UI. This one should be initialized first and we should have a way to access this data the sonner without blocking the UI.  
 To finish, UIUtils is not needed right after the launch screen but impact the UI. This one can be initialized in a low priority thread.
 
 

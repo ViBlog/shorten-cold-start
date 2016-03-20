@@ -4,6 +4,10 @@ Dive into the code, Real Plan
   - UserPreferences
   - UIUtils.initReservatoni
   - Bilan
+- Clean code
+  - Do one thing and do it well
+  - onCreate things done
+    - 
 - 
 
 
@@ -96,8 +100,135 @@ But let's take a look on this line, ```DateTime.now().plusDays(days)```. is bloc
 
 ### Sum Up
 So we have Analytic Commander that takes time to initialize, used everywhere in the app but is just an api call and do not interact with the UI. We can launch it in a thread as a fire and forget mode.  
-Them we have UserPrefences that are needed not long after the launch screen, that impacts UI. This one should be initialized first and we should have a way to access this data the sonner without blocking the UI.  
-To finish, UIUtils is not needed right after the launch screen but impact the UI. This one can be initialized in a low priority thread.
+Then we have UserPrefences that are needed not long after the launch screen, that impacts UI. This one should be initialized first and we should have a way to access this data the sonner without blocking the UI.  
+To finish, UIUtils is not needed right after the launch screen but impact the UI. This one can be initialized in a low priority thread at startup.
+
+___________________
+Page 3?
+
+# Modify code
+## Clean Up
+Code should be self explanatory and a method should do only one thing. This is not the case in this onCreate so let's split it up.
+
+```java
+@Override public void onCreate() {
+    DineApp.appContext = getApplicationContext();
+    super.onCreate();
+
+    RegisterToAppForeground();
+
+    buildAppServices();
+    Fabric.with(this, new Crashlytics());
+    setUpAppsFlyerLib();
+    setUpUrbanAirshipLib();
+    setUpAppRateLib();
+    setUpFacebookLib();
+    UserPreferences.init(this);
+    UIUtils.initReservation(this);
+    setDebugTheme();
+    //LeakCanary.install(this);
+  }
+```
+
+Now that we have a much cleaner and comprehensive onCreate we can start fixing the boot time. But how to do it cleanly?
+
+## What's Lazy Loading
+- what's lazy loading
+- Dagger
+  - Do not use magics
+  - if you have to debug it you must understand it
+  - Not the case of all the developpers
+  - Will speak about it in another project
+- link to lazyloading github
+
+```java
+public class LazyServiceRegistry {
+    [...]
+
+    public interface Callback<T> { void onInstanceReceived(T instance); }
+
+    public interface LazySetter<T>{ T get(); }
+
+    public <T> void addInstance(Class clazz, T instance) {...}
+
+    public <T> void addLazy(Class clazz, LazySetter<T> lazySetter) {...}
+
+    public <T> T get(Class<T> clazz) {...}
+
+    public <T> void get(final Class<T> clazz, final Callback<T> callback) {...}
+} 
+```
+  
+### How it works
+This class is an extended version of the basic ServiceRegistry we were using. It adds the possibility to delay instance creation by using the LazySetter interface. If the object is not instanciated, it will be created the first time it's called and will be put in memory for later use. It's also possible to ask for a creation on a thread and use a callback for when it's ready. 
+***Use of interfaces to access a class*** 
+
+## Replace Service Registry
+First of all we need to replace the previous Service registry in the ```DineApp``` class. 
+
+```java
+protected static LazyServiceRegistry registry; 
+
+private void buildAppServices() {
+    registry = new LazyServiceRegistry();
+    registry.addInstance(AnalCommander.class, new AnalCommander(appContext)); // adding in synchronously to begin
+}
+
+public static LazyServiceRegistry getRegistry() { // to access it easily in the whole application
+    return registry;
+}  
+```
+
+Previous ServiceRegistry was static for convenience in the code. The problem is that it's hard to mock in unit tests. That's why I'm using it as a single instance. To avoid NullPointerExceptions on some constructors, I have added a ```isInitialized(Class clazz)``` method whose goal is to check if the method have already been initialized. Well... Self explanatory name :)
+
+```java
+public CurrentLocation() {
+-    if (ServiceRegistry.getInstance(CurrentLocation.class) != null) {}
++    if (getRegistry().isInstanciated(CurrentLocation.class)) { }
+}
+```
+
+########## No increase in performance -> check in nimbledroid
+
+## AnalyticCommander 
+### Initialization
+Let's start by Analytics Commander, we will add through ```addLazy(Class, LazySetter)``` method
+- lazySetter in onCreate
+
+### Calls async
+- getInstanceAsync -> fire and forget
+
+### NimbleDroid speed up?
+_______________________
+
+## UserPreferences
+### Initialization
+- remove static from class
+
+### Start instance to preload
+
+### Calls Async
+
+### NimbleDroid speed up?
+
+_______________________
+## UIUtils
+### Initialization
+- remove static from class
+
+### Start instance to preload
+
+### Calls sync
+
+### NimbleDroid speed up
+_______________________
+
+# Conclusion
+
+
+
+
+
 
 
 
@@ -115,7 +246,7 @@ What we will see in next one + link
 
 
 - Singleton pattern is not the solution, welcome single instance
--> [nice explanation](http://programmers.stackexchange.com/a/40610/212413)
+
 
 
 

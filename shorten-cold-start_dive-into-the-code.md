@@ -195,6 +195,71 @@ public CurrentLocation() {
 Let's start by Analytics Commander, we will add through ```addLazy(Class, LazySetter)``` method
 - lazySetter in onCreate
 
+Creation
+```java
+registry.addLazy(AnalCommander.class, new LazyServiceRegistry.LazySetter<AnalCommander>() {
+      @Override
+      public AnalCommander get() {
+        return new AnalCommander(appContext);
+      }
+    });
+```
+
+Now it will be instantiated when it's first used.
+Let's see where it's used.
+
+Image Screen Shot get()
+
+Well it's used everywhere. Let's focus on the launch of the first activity as it's the one that will block the launch. Find usage on this method.
+
+```java
+public static AnalCommander get() {
+    return DineApp.getRegistry().get(AnalCommander.class);
+  }
+```
+
+I'm not fond of this method as it cause multiple problems
+- deeply tied to the ServiceRegistry
+- do not handle async 
+- Can't handle multiple Instances of object through interfaces
+
+```java
+@Override public void sendAnalytics() {
+    if (merchantPlayListFragment.getDataset().size() > 0) {
+      AnalCommander.get().sendPageView(this);
+    }
+  }
+```
+Analytics Commander is used to send pageView data of the activity. We can initialize async Analytic Commander and then do the call without any problems. We will modify it to access the async method of the LazyServiceRegistry
+
+```java
+@Override public void sendAnalytics() {
+    if (merchantPlayListFragment.getDataset().size() > 0) {
+      DineApp.getRegistry().get(AnalCommander.class, new LazyServiceRegistry.Callback<AnalCommander>() {
+        @Override
+        public void onInstanceReceived(AnalCommander instance) {
+          instance.sendPageView(MainActivity.this);
+        }
+      });
+    }
+  }
+```
+
+Yes it's a bit more code but once folded cmd + '-' on mac, it looks better.
+
+```java
+@Override public void sendAnalytics() {
+    if (merchantPlayListFragment.getDataset().size() > 0) {
+      DineApp.getRegistry().get(AnalCommander.class, (instance) -> {
+          instance.sendPageView(MainActivity.this);
+      });
+    }
+  }
+```
+
+AnalCommander annotation make it harder to start it async. This causes a massive 
+
+
 ### Calls async
 - getInstanceAsync -> fire and forget
 

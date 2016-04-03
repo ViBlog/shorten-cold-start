@@ -1,4 +1,4 @@
-Essay that is published under [Profile cold starts on dubedout.eu](http://dubedout.eu/profile-cold-starts/)
+Essay that is published under [Profile Android Cold Starts](http://dubedout.eu/profile-android-cold-starts/) on [dubedout.eu](http://dubedout.eu/)
 
 # Cold Starts
 ## What's that?
@@ -68,14 +68,40 @@ As we have seen in the previous post, those are the three methods that are block
 
 So, everything is on the onCreate without any threading. I have removed nonrelevant code. Let`s study the different blockers one by one.
 
-### Analytic Commander
+## Analytic Commander
+### What's going on
 It's an analytic tool that helps to merge all analytics libraries in a single access point. As all analytic tools, it`s used everywhere in the application. To avoid creating the object every time used, it's done in the application initialization and stored in the ServiceRegistry (a Class/Instance map singleton).
 
 [![Analytic Commander][callstack_oncreate_analcommander]][callstack_oncreate_link]
 
 As you can see here, initialization is taking most of his time in **TagCommander** constructor and Tag parsings. This library is used everywhere in the app. Creating a background thread to set it up can cause errors later because trying to access an object not yet initialized.
 
-### UserPreferences
+### Fire and Forget
+This one is used everywhere in the application, but it only sends data and does not interact with the UI. We do not have to wait for data to be returned from the API. In this case, we can use a Lazy Loading library like Dagger or [a Lazy Loading class] I have created some time ago. 
+
+First you need to change the ServiceRegistry for the Lazy Loading class, create a method to access to this LazyLoading class accross whole application (like a static method) and finally create the initializer object:
+```java
+registry.addLazy(AnalCommander.class, new LazyServiceRegistry.LazySetter<AnalCommander>() {
+      @Override
+      public AnalCommander get() {
+        return new AnalCommander(appContext);
+      }
+    });
+```
+
+Then, in a background thread, access to the instance and send the call. The Lazy Loading class will initialize it and store it locally for later use. We don't need to wait for the response (Retry on error should be part of the class). Now initialization and api call is async and not tied anymore in UIThread.
+
+```java
+new Thread(new Runnable() {
+    @Override
+    public void run() {
+        DineApp.getLazyRegistry().getInstance(AnalComander.class).sendPageView();
+    }
+}).start();
+```
+
+## UserPreferences
+### What's going on
 `UserPreferences.init(this)` loads all user data from JSON files stored in ```SharedPreferences```. Keeping it in memory during the whole application lifecycle for Search History, User favorites, etc...
 
 [![User Preferences][callstack_oncreate_userpreference]][callstack_oncreate_link]
@@ -87,8 +113,52 @@ favPlaces = gson.fromJson(jsonFavPlaces, new TypeToken<HashMap<String, DineMerch
 ```
 During initialization, it relies heavily on GSON's reflection causing multiple heavy processing that blocks the main thread. The New York Times have written an excellent post on [Improving their Startup Time][newyorktimes_improvingstartuptime] where they go through the same problems. They solve it by using [gson with custom type adapters][gson_custom_types]. On our side, most of our objects are not used in the firsts seconds of startup, so we should be okay just creating them in a background thread.
 
-### UIUtils.initReservation
-This method creates people's default number, default reservation hours. It is only used in the next ```Activity``` (Search) and so we can delay the creation. *I think that we can create those default objects by hand instead of parsing JSON data to avoid reflection costs when there are not many objects*
+### Don't put all eggs is the same basket
+UserPreferences is maybe the more trickier. We needs his data to be displayed in the first ```Activity```. But this class have multiple problems, it's a **full static** class grouping very different data. So even if we need a little portion of it, it needs to be initialized fully. First we should split the data under a same package a bit like this:
+- UserPreferences/```LastCities.class```
+- UserPreferences/```FavoritePlaces.class```
+- UserPreferences/```FavoriteCurators.class```
+- UserPreferences/```FavoritePlaylists.class```
+- UserPreferences/```SearchHistory.class```
+- UserPreferences/```RecentMerchant.class```
+- UserPreferences/```Reservations.class```  
+etc...
+
+Then remove all this static methods everywhere and use the Lazy Loading class to retain his instance.
+
+```java
+registry.addLazy(LastCities.class, new LazyServiceRegistry.LazySetter<LastCities>() {
+      @Override
+      public LastCities get() {
+        return new LastCities(appContext);
+      }
+    });
+```
+
+Then we will access this object using the Async method of the LazyLoading class, once we get the object, we will update the UI directly there.
+
+```java
+DineApp.getRegistry().get(LastCities.class, new LazyServiceRegistry.Callback<LastCities>() {
+  @Override
+  public void onInstanceReceived(LastCities instance) {
+    // update UI
+  }
+});
+```
+
+Yes it's a bit more code but once folded cmd + '-' on mac, it looks better.
+
+```java
+DineApp.getRegistry().get(LastCities.class, (instance) -> {
+    // update UI
+  });    
+```
+
+This service initialization is created at startup (App.onCreate). Once needed it's initialized in a background thread and updates the UI on the main Thread. Then if we still need to fasten the process, we can create a ```GSON``` custom type to avoid the costly reflection. 
+
+## UIUtils.initReservation
+### What's going on
+This method creates people's default number, default reservation hours, default **day** available. It is used on the first ```Activity``` displayed. *I think that we can create those default objects by hand instead of parsing JSON data to avoid reflection costs when there are not many objects*
 
 ![UIUtils initReservation][callstack_oncreate_uiutils_joda]
 
@@ -99,20 +169,40 @@ private static DateTime getSelectedDateTime(int days) {
 }
 ```
 
-However, let's take a look at this line, ```DateTime.now().plusDays(days)```. JodaTime is clearly blocking the MainThread for a bit less than 1 second. That is a huge impact. We should always take care methods we are using as they can impact our app. We always should do most of the work on a background thread to avoid this kind of unwanted behaviour. 
+### How to patch
+Let's take a look at this line, ```DateTime.now().plusDays(days)```. JodaTime is clearly blocking the MainThread for a bit less than 1 second. That is a huge impact. We should always take care of methods we are using. We always should do most of the work on a background thread to avoid this kind of unwanted behaviour. What can we do to fix the first call to DateTime.now() latency? First, why are we doing this... At the end of the method we can see this:
 
-# How to solve
-## Analytics Commander
-This one is used everywhere in the application, but it only sends data and does not interact with the UI. We do not have to wait for data to be returned from the API. In this case, we can use a Lazy Loading library like Dagger. Then, in a background thread, access to the instance and send the call. Doing that, the initialization is async and once the object created, send the data without being tied to the UI.
+```java
+defaultItems[0] = partySizes.get(2);//2 peoples
+defaultItems[1] = daysAvailable.get(1);// today
+defaultItems[2] = timesAvailable.get(3);// some hour near now
+```
 
-## UserPreferences
-Maybe the more complicated, is tied to the first ``Activity. We should split the data needed on the first page from the one needed later. This service should be initialized the sooner (App.onCreate), in a background thread, and accessed in the first Activity and update the UI once you get the data needed. Then if we still see problems, it can be useful to create a gson custom type to avoid the reflection. 
+![Dine Main Screen][dine_main_screen]
 
-## UIUtils
-It's a particular case; we do not need it right away but it should still be initialized in the onCreate but as a low priority background thread. This instance will be ready when we will need it, on the second screen.
+At the time of writing this we are Sunday and it's 18h00. With very little changes, we could be avoid all this preloading all for default.
+Party Size can always be **2** by default and the day available **today** no need for any big calculations on that. But how do we do for time available?
 
-# SumUp
-So we have seen how to profile our startup time and extract the biggest problems. It's now time for you to solve them. As a side note, we should always keep track of it and lucky us, it's also something you can setup on the NimbleDroid website for free (ow and I'm not linked to NimbleDroid, it's just a useful tool). This way we can keep an eye on builds after builds, check if we are correctly using new libraries and don't impact too much our users.
+JodaTime is a pretty big library, usefull on some cases but we don't have to rely on it for everything. I have done this very scientific test on a cold start (runned the test 3 times with similar results on emulator).
+
+```java App.OnCreate
+Log.d("APP", "StartTime Calendar")
+var hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY); // ~ 0 to 1ms 
+Log.d("APP", "StopTime Calendar")
+
+Log.d("APP", "StartTime Joda")
+var hour2 = DateTime.now().hourOfDay; // ~ 56 to 67ms
+Log.d("APP", "StopTime Joda")
+```
+
+Do we really need to use JodaTime to get the hour of the day? My guess here is no so we can switch for the basic calendar and reduce the latency.
+
+All the heavy calculations can be started on a thread to be ready when the user will click on the button and have near instant response.
+
+# Conclusion
+We have seen how to profile our startup time and extract the biggest problems. We had our hands on some code and how to modify it to get a better experience for the user. To finish we found that using a big library is not often the best tool for performance and we have to always think about the impact of our code on our user.  
+
+As a side note, we should always keep track of the cold start, it's a good indicator about what is going on in the code and NimbleDroid offer this for free. This way we can keep an eye on builds after builds, check if we are correctly using new libraries and don't impact too much our users.
 
 Have a great profiling day :)
 
@@ -129,6 +219,7 @@ PS: for now I haven't any comments on my website, please send any comments/issue
 [callstack_oncreate_analcommander]: images/callstack_onCreate_analcommander.png
 [callstack_oncreate_userpreference]: images/callstack_onCreate_userPreferences.png
 [callstack_oncreate_uiutils_joda]: images/callstack_onCreate_UIUtils_initReservation.png
+[dine_main_screen]: images/dine_main_screen.png
 
 
 [comment]: <> (LINKS)

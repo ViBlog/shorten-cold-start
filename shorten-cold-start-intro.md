@@ -8,12 +8,12 @@ In Android, there is three types of starts: First Starts, Cold Starts, and Warm 
 
 - Warm starts, the fastest, is when you put your app in the background and go back to it. The app is still in memory, everything up and running. It's usually very fast and often doesn't need improvements.
 
-- Cold starts, to finish, is between first and warm. The application has been released from the memory, and will have to initialize back every service, which it needs to run. It's frequently occurring, and it takes some time to startup, the user will notice it, and will not like it as you can see in this 2012's [report].
+- Cold start is between first and warm. When the device needs memory for launching new apps and that you app is in the background doing nothing, Android will release your app from the memory. Next time your app is launched, Android will have to initialize back every service it needs to run. It's frequently occurring, and launch time is often between one to few seconds. The user will notice and will not like it as you can see in this 2012's [report]. Time to launch is the first impression the user will have. 
 
 ## Why it's so slow
 In everyday work, we use [libraries] to develop and achieve business requirements faster. Those focus on adding features instead of keeping an application quick and responsive because the latest is not adding business value, or not directly quantifiable.
 
-A big part of used libraries are needed by the whole application and are often initialized in the ```Application.onCreate()```. When we initialize without any threading or lazy loading, we end up with an ```onCreate``` that takes more time to process. As it's one of the methods called each time the application start, and that ```Activities``` can't be started until it's complete, we slow down every launch.
+A big part of used libraries are needed by the whole application and are often initialized in the ```Application.onCreate()```. When we initialize without any threading or lazy loading, we end up with an ```onCreate``` that takes more time to process. ```Application.onCreate()``` is the first method launched on every start. This method have to be completed before starting any Activity. So the longest it takes, the longest the first page will take to be displayed.
 
 When the application is slow to start, it displays the [Zygote] longer, and it will break immersion. This root white start screen is not pretty by default. But instead of focusing on creating a beautiful app startup screen with the windowBackground we will concentrate on tracking what is taking time and reduce it.
 
@@ -21,7 +21,7 @@ When the application is slow to start, it displays the [Zygote] longer, and it w
 [YP Dine] is a recent application of the play store built by another team in Yellow Pages Canada. His goal is to let you discover your next favorite restaurant, browse through handmade lists from local food experts or book a table directly from the app. I will dig into application initialization to check if we can have quick wins.
 
 ## What tools
-Usually, I use [TraceView and DmTraceDump] to find the bottlenecks in the code and fix it. But today we will play with this new player: [NimbleDroid]. They use the same tools but display the results in a very easy to understand way. All performance tests are realized in same conditions letting you compare with other applications, You can also keep track of App cold start versions after version.
+Usually, I use [TraceView and DmTraceDump] to find the bottlenecks in the code and fix it. But today we will play with this new player: [NimbleDroid]. They use the same tools but display the results in a very easy to understand way. All performance tests are realized in the same conditions letting you compare with other applications. One of the nice tricks is that you can automatically hook your build from popular git hosting and therefore, keeping track about the cold start versions after version.
 YP Dine isn't obfuscated so we can effortlessly check which part of the code is blocking. If you obfuscate yours,  it's still possible to add the ProGuard Mapping to reveal problematic methods.  
 
 On a side note, a colleague shared me [Show Java app] that can be useful to see unobfuscated code apps.
@@ -73,7 +73,7 @@ It's an analytic tool that helps to merge all analytics libraries in a single ac
 
 [![Analytic Commander][callstack_oncreate_analcommander]][callstack_oncreate_link]
 
-As you can see here, initialization is taking most of his time in **TagCommander** constructor and Tag parsings. This library is used everywhere in the app. Creating a thread to set it up can cause errors later.
+As you can see here, initialization is taking most of his time in **TagCommander** constructor and Tag parsings. This library is used everywhere in the app. Creating a background thread to set it up can cause errors later because trying to access an object not yet initialized.
 
 ### UserPreferences
 `UserPreferences.init(this)` loads all user data from JSON files stored in ```SharedPreferences```. Keeping it in memory during the whole application lifecycle for Search History, User favorites, etc...
@@ -103,13 +103,13 @@ However, let's take a look at this line, ```DateTime.now().plusDays(days)```. Jo
 
 # How to solve
 ## Analytics Commander
-This one is used everywhere in the application, but it only sends data and does not interact with the UI. We do not have to wait for data to be returned from the API. In this case, we can use a Lazy Loading library like Dagger. Then, in a thread, access to the instance and send the call. Doing that, the initialization is async and once the object created, send the data without being tied to the UI.
+This one is used everywhere in the application, but it only sends data and does not interact with the UI. We do not have to wait for data to be returned from the API. In this case, we can use a Lazy Loading library like Dagger. Then, in a background thread, access to the instance and send the call. Doing that, the initialization is async and once the object created, send the data without being tied to the UI.
 
 ## UserPreferences
-Maybe the more complicated, is tied to the first ``Activity. We should split the data needed on the first page from the one needed later. This service should be initialized the sooner (App.onCreate), in a thread, and accessed in the first Activity and update the UI once you get the data needed. Then if we still see problems, it can be useful to create a gson custom type to avoid the reflection. 
+Maybe the more complicated, is tied to the first ``Activity. We should split the data needed on the first page from the one needed later. This service should be initialized the sooner (App.onCreate), in a background thread, and accessed in the first Activity and update the UI once you get the data needed. Then if we still see problems, it can be useful to create a gson custom type to avoid the reflection. 
 
 ## UIUtils
-It's a particular case; we do not need it right away but it should still be initialized in the onCreate but as a low priority thread. This instance will be ready when we will need it, on the second screen.
+It's a particular case; we do not need it right away but it should still be initialized in the onCreate but as a low priority background thread. This instance will be ready when we will need it, on the second screen.
 
 # SumUp
 So we have seen how to profile our startup time and extract the biggest problems. It's now time for you to solve them. As a side note, we should always keep track of it and lucky us, it's also something you can setup on the NimbleDroid website for free (ow and I'm not linked to NimbleDroid, it's just a useful tool). This way we can keep an eye on builds after builds, check if we are correctly using new libraries and don't impact too much our users.

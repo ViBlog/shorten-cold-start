@@ -183,15 +183,15 @@ defaultItems[2] = timesAvailable.get(3);// some hour near now
 At the time of writing this we are Sunday and it's 18h00. With very little changes, we could be avoid all this preloading all for default.
 Party Size can always be **2** by default and the day available **today** no need for any big calculations on that. But how do we do for time available?
 
-JodaTime is a pretty big library, usefull on some cases but we don't have to rely on it for everything. I have done this very scientific test on a new App's activity (runned the test 3 times with similar results on emulator).
+JodaTime is a pretty big library, usefull on some cases but we don't have to rely on it for everything. I have done this "very" scientific test in kotlin on a new App's activity (runned the test 3 times with similar results on emulator).
 
 ```java
 Log.d("APP", "StartTime Calendar")
-var hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY); // ~ 0 to 1ms 
+var hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
 Log.d("APP", "StopTime Calendar")
 
 Log.d("APP", "StartTime Joda")
-var hour2 = DateTime.now().hourOfDay; // ~ 56 to 67ms
+var hour2 = DateTime.now().hourOfDay
 Log.d("APP", "StopTime Joda")
 ```
 
@@ -200,7 +200,7 @@ Do we really need to use JodaTime to get the hour of the day? My guess here is n
 All the heavy calculations can be started on a thread to be ready when the user will click on the button and have near instant response.
 
 # Conclusion
-We have seen how to profile our startup time and extract the biggest problems. We had our hands on some code and how to modify it to get a better experience for the user. To finish we found that using a big library is not often the best tool for performance and we have to always think about the impact of our code on our user.  
+We have seen how to profile our startup time and extract the biggest problems. We had our hands on some code and modified it to get a better user experience by increasing performance. To finish we found that using a big library is not often the best tool for performance and we have to always think about the impact of our code on our user.  
 
 As a side note, we should always keep track of the cold start, it's a good indicator about what is going on in the code and NimbleDroid offer this for free. This way we can keep an eye on builds after builds, check if we are correctly using new libraries and don't impact too much our users.
 

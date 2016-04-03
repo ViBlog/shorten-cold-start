@@ -183,9 +183,9 @@ defaultItems[2] = timesAvailable.get(3);// some hour near now
 At the time of writing this we are Sunday and it's 18h00. With very little changes, we could be avoid all this preloading all for default.
 Party Size can always be **2** by default and the day available **today** no need for any big calculations on that. But how do we do for time available?
 
-JodaTime is a pretty big library, usefull on some cases but we don't have to rely on it for everything. I have done this very scientific test on a cold start (runned the test 3 times with similar results on emulator).
+JodaTime is a pretty big library, usefull on some cases but we don't have to rely on it for everything. I have done this very scientific test on a new App's activity (runned the test 3 times with similar results on emulator).
 
-```java App.OnCreate
+```java
 Log.d("APP", "StartTime Calendar")
 var hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY); // ~ 0 to 1ms 
 Log.d("APP", "StopTime Calendar")

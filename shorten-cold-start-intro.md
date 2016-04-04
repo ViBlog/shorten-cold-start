@@ -20,17 +20,17 @@ When the application is slow to start, it displays the [Zygote] longer, and will
 
 Today, instead of focusing on creating a beautiful app startup screen with the windowBackground, we will profile this cold start and work on reducing it.
 
-# Profile YP Dine
-[YP Dine] is a recent application of the play store built by another team in Yellow Pages Canada. His goal is to let you discover restaurants, browse through handmade lists from local food experts or book a table directly from the app. Between the time I started this post and now, a month passed, and a lot of the code base has changed. I will dig in the original version, provide some insight and some solutions that can be used.
+# Profiling
+Working for Yellow Pages Canada, I will profile our apps, dig in and provide some insight and solutions that can be used. As of today, the problems have been solved but that can still give some ideas on how to fix.
 
 ## What tools
 Usually, I use [TraceView and DmTraceDump] to find the bottlenecks in the code and fix it. Here we will play with [NimbleDroid], a new player in town. They use the same tools but display the results in a very easy to understand way. All performance tests are realized in the same conditions letting you compare with other applications. One of the nice tricks is that you can automatically hook your builds to it and therefore, keeping track of your cold start time, versions after versions.
-YP Dine is unobfuscated, so we can effortlessly check which part of the code is blocking. If you obfuscate yours, it's still possible to provide the ProGuard Mapping to reveal problematic methods.  
+If your code is obfuscated, it's possible to provide the ProGuard Mapping to reveal problematic methods.  
 
 On a side note, a colleague shared me [Show Java app] that can be useful to see unobfuscated code apps.
 
 ## Tracing
-Yp Dine is not a bad player here with 2400 ms to start. But we can see below that the DineApp.onCreate() is blocking the process for 2059 ms. Roughly 80% of his start time is blocked here, clicking on this line will open a new view with more details in it.
+Yp Dine was not a bad player here with 2400 ms to start (last version is under 1400ms). But we can see below that the DineApp.onCreate() was blocking the process for 2059 ms. Roughly 80% of his start time is blocked here, clicking on this line will open a new view with more details in it.
 
 ![2.6s launch time][YPDine_general]  
 
@@ -46,7 +46,7 @@ If those methods are blocking the UI, it means that they execute in the main thr
 
 Always keep in mind to work on the most important issues first, frames dropping on a ```ListView``` can be more frustrating that the start time. I like this post from coding horror on [Gold Plating], you should take a look if you don't know it.
 
-That was a quick head up on to find the blocking culprits. Let's see if we can do something.
+That was a quick heads-up on how to find the blocking culprits. Let's see if we can do something.
 
 # Let's go deeper
 ## Application onCreate
@@ -70,7 +70,7 @@ As seen previously, those are the three methods that are blocking the startup:
 }
 ```
 
-As expected, everything is on the onCreate without any threading. I have removed nonrelevant code not to burn your eyes... for now...   
+As expected, everything is on the onCreate without any threading. I have removed nonrelevant code to focus on the main ones.  
 Let`s study the different blockers one by one.
 
 ## Anal(ytic) Commander
@@ -111,6 +111,7 @@ The Lazy Loading class will initialize and store it locally for later use. We do
 ## UserPreferences
 ### What's going on
 `UserPreferences.init(this)` loads all user data from JSON files stored in ```SharedPreferences```, keeping it in memory during the whole application lifecycle for Search History, User favorites, etc...   
+
 *I'm not fond of this storage system, with libraries like ```ORMLite``` and ```Green Dao``` we can create this kind of storage in a cleaner way in the same amount of time*
 
 [![User Preferences][callstack_oncreate_userpreference]][callstack_oncreate_link]
@@ -169,7 +170,7 @@ If we still need to fasten a bit more the process, we can still create a ```GSON
 
 ## UIUtils.initReservation
 ### What's going on
-This method creates people's default number, default reservation hours, default day available. It is used on the first ```Activity``` displayed. *When there is not a lot of default objects, I prefer initializing them directly in a default object to avoid the reflection costs of parsing a ```JSON``` data*
+This method creates people's default number, default reservation hours, default day available. It is used on the first ```Activity``` displayed. 
 
 ![UIUtils initReservation][callstack_oncreate_uiutils_joda]
 
@@ -179,6 +180,7 @@ private static DateTime getSelectedDateTime(int days) {
     return DateTime.now().plusDays(days);
 }
 ```
+*** Expliquer que c'est le now() qui bloque le main thread ***
 
 ### How to patch
 Let's take a look at this line, ```DateTime.now().plusDays(days)```. JodaTime is clearly blocking the MainThread for around 800ms on his own. That's a huge impact. We should take care of that kind of methods and always doing most of the work on a background thread to avoid this kind of unwanted behavior.  
@@ -196,6 +198,7 @@ Can't we use default data displayed to the user while we load the logic to be di
 
 ![Dine Main Screen][dine_main_screen]
 
+***Expliquer qu'avec des changements mineurs sur les requis de la tache/UI on peut obtenir des meilleures performances ***
 With some changes, we could avoid all this for default data.
 Party Size can always be **2** and the day available **today** no need for any significant calculations on that. But how do we do for the time available?
 
@@ -215,12 +218,24 @@ Do we really need to use JodaTime to get the hour of the day? My guess here is *
 
 All the massive calculations can be started on a background thread to be ready when the user will click on the button. We don't need it right now.
 
-To finish it's cleaning this method, it would be very similar to the previous paragraph so I will not be a bore and will end this post.
+## YP Search
+### Preloading data
+Actually, preloading Json file for neighbourhood at startup and keeping it in memory the whole time.
+step 1: lazy loading it when needed (montreal neighbourhood for montreal etc)
+step 2: load everything in the local database system
+
+
+To finish we need to clean up this method, it would be very similar to the previous paragraph so I will not be a bore and will end this post.
 
 # Conclusion
 We have seen how to profile our startup time and extract the biggest problems. We had our hands on some code and modified it to get a better user experience by increasing performance. To conclude, we found that using a big library is not often the best tool performance wise, and to always think of our code impact on our user.  
 
 As a side note, we should always keep track of the cold start, it's a good indicator about what is going on in the code, if we are correctly using libraries, and don't impact too much the application cold start. NimbleDroid offers this for free (for now), so no reason to not using it. 
+
+Check out our apps:
+[YP Dine] is an application of the play store built by Yellow Pages Canada. His goal is to let you discover restaurants, browse through handmade lists from local food experts or book a table directly from the app. Between the time I started this post and now, a month passed, and a lot of the code base has changed. 
+[YP Search] blabla
+
 
 Here we are, so help your user have a great experience and have an excellent profiling day.
 
@@ -251,4 +266,4 @@ PS: for now I haven't any comments on my website, please send any comments/issue
 [gold plating]: http://blog.codinghorror.com/gold-plating/
 [callstack_oncreate_link]: https://nimbledroid.com/play/com.ypg.dine?p=323DVxanEq1ssS#com.ypg.dine.DineApp.onCreate
 [newyorktimes_improvingstartuptime]: http://open.blogs.nytimes.com/2016/02/11/improving-startup-time-in-the-nytimes-android-app/?_r=0
-[gson_custom_types]: https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/TypeAdapter.html
+[gson_custom_types]: https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/TypeAdapter.htmlM

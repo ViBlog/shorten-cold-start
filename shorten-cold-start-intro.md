@@ -4,18 +4,20 @@ Essay that is published under [Profile Android Cold Starts](http://dubedout.eu/p
 ## What's that?
 In Android, there is three types of starts: First Starts, Cold Starts, and Warm Starts.
 
-- First starts, the slowest, is just after the application have been installed or updated. The app needs to (re)set up a database, load configuration, load the first batch of data. It's only occurring once, so it's not the most important.
+- First start, the slowest, happens the first time the application is launched after installation. The app needs to set everything up. It can be a database, configuration files, load the first batch of data, etc... It's often very slow but only occurring once. This load time can be hidden under an onboarding by example.
 
-- Warm starts, the fastest, is when you put your app in the background and go back to it. The app is still in memory, everything up and running. It's usually very fast and often doesn't need improvements.
+- Warm starts, the fastest, happens when you switch of application and go back without the system freeing it from the memory. Everything is up and running so Android doesn't have to reload a lot of things. It's usually very fast and often doesn't need improvements (or you are creating a game).
 
-- Cold start is between first and warm. When the device needs memory for launching new apps and that you app is in the background doing nothing, Android will release your app from the memory. Next time your app is launched, Android will have to initialize back every service it needs to run. It's frequently occurring, and launch time is often between one to few seconds. The user will notice and will not like it as you can see in this 2012's [report]. Time to launch is the first impression the user will have. 
+- Cold start, to finish, happens when your app is not cached in memory and that Android needs to launch it. An Android device is always managing memory and when your app is not in foreground and doing nothing, Android will clear it from memory and will give it to another one in need. This happens very frequently. When a user is launching an app, he have to wait this amouns of time. The more he will wait on this step, the more he will feel it and will give a sense of slugginess on the application. Even if it's fast after. It have been studied in this 2012's [report]. Time to launch is the first impression the user will have so we need to impress them. 
 
 ## Why it's so slow
-In everyday work, we use [libraries] to develop and achieve business requirements faster. Those focus on adding features instead of keeping an application quick and responsive because the latest is not adding business value, or not directly quantifiable.
+In everyday work, we use [libraries] to develop and achieve business requirements faster. Those focus on adding features instead of keeping an application quick and responsive. If it's hardly quantifiable or not adding direct business value it will rarely be on our development plates.
 
-A big part of used libraries are needed by the whole application and are often initialized in the ```Application.onCreate()```. When we initialize without any threading or lazy loading, we end up with an ```onCreate``` that takes more time to process. ```Application.onCreate()``` is the first method launched on every start. This method have to be completed before starting any Activity. So the longest it takes, the longest the first page will take to be displayed.
+A big part of used libraries are needed in the whole application, and often initialized in the ```Application.onCreate()```. If we do it without any threading or lazy loading, the ```onCreate``` will take more time to process. The longest it takes, the longest the first page will take to be fully displayed. The reason for this is that the ```Application.onCreate()``` is the first method launched on every start and no Activity is started until the method is done.
 
-When the application is slow to start, it displays the [Zygote] longer, and it will break immersion. This root white start screen is not pretty by default. But instead of focusing on creating a beautiful app startup screen with the windowBackground we will concentrate on tracking what is taking time and reduce it.
+When the application is slow to start, it displays the [Zygote] longer, and will break immersion. This root white start screen is not pretty by default.  
+
+Today, instead of focusing on creating a beautiful app startup screen with the windowBackground, we will profile this cold start and work on reducing it.
 
 # Profile YP Dine
 [YP Dine] is a recent application of the play store built by another team in Yellow Pages Canada. His goal is to let you discover your next favorite restaurant, browse through handmade lists from local food experts or book a table directly from the app. I will dig into application initialization to check if we can have quick wins.
